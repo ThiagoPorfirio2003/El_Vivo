@@ -1,12 +1,7 @@
 package com.porfirio.elvivo.security.jwt;
 
-import com.porfirio.elvivo.domain.user.MyUserDetails;
-import com.porfirio.elvivo.unsorted.LogedUser;
-import lombok.Setter;
+import com.porfirio.elvivo.unsorted.AuthenticatedUser;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
@@ -17,7 +12,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken
     private String credential;
 
     //userDetails es el principal
-    private LogedUser userDetails;
+    private AuthenticatedUser userDetails;
 
     //Para Antes de la autenticacion
     public JwtAuthenticationToken(String token)
@@ -30,7 +25,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken
     }
 
     //Para despues de la autenticacion
-    public JwtAuthenticationToken(LogedUser userDetails, Collection<? extends GrantedAuthority> authorities)
+    public JwtAuthenticationToken(AuthenticatedUser userDetails, Collection<? extends GrantedAuthority> authorities)
     {
         super(authorities);
 

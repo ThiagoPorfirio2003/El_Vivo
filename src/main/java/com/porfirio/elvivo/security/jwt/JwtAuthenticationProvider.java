@@ -3,18 +3,13 @@ package com.porfirio.elvivo.security.jwt;
 import com.porfirio.elvivo.domain.user.credential.UserCredential;
 import com.porfirio.elvivo.domain.user.credential.UserCredentialRepository;
 import com.porfirio.elvivo.exception.JwtAuthenticationException;
-import com.porfirio.elvivo.unsorted.LogedUser;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
+import com.porfirio.elvivo.unsorted.AuthenticatedUser;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component("jwtAuthProvider")
 public class JwtAuthenticationProvider implements AuthenticationProvider
@@ -56,7 +51,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider
         userCredential = this.userCredentialRepository.findById(userCredentialId).get();
 
         var jwtAuthenticationToken = new JwtAuthenticationToken(
-                new LogedUser(userCredentialId, -1L, userCredential.getEmail()), null);
+                new AuthenticatedUser(userCredentialId, -1L, userCredential.getEmail()), null);
 
         jwtAuthenticationToken.setAuthenticated(true);
 

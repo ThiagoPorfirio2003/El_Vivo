@@ -1,7 +1,8 @@
 package com.porfirio.elvivo.features.auth;
 
+import com.porfirio.elvivo.domain.user.MyUserDetails;
+import com.porfirio.elvivo.domain.user.UserRoles;
 import com.porfirio.elvivo.domain.user.credential.UserCredential;
-import com.porfirio.elvivo.domain.user.credential.UserCredentialDetails;
 import com.porfirio.elvivo.domain.user.credential.UserCredentialRepository;
 import com.porfirio.elvivo.features.auth.dto.CredentialRequest;
 import com.porfirio.elvivo.security.jwt.JwtService;
@@ -13,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.security.Principal;
 import java.util.Map;
 
 @RestController
@@ -24,9 +24,6 @@ public class AuthController
     private final AuthServiceImpl authService;
     private final JwtService jwtService;
 
-    private final AuthenticationManager jwtAuthManager;
-    private final AuthenticationManager loginAuthManager;
-
     /*
         Agregar:
             - Refresh Token
@@ -35,15 +32,11 @@ public class AuthController
     @Autowired
     public AuthController(UserCredentialRepository userCredentialRepository,
                           AuthServiceImpl authService,
-                          JwtService jwtService,
-                          @Qualifier("jwtAuthManager") AuthenticationManager jwtAuthManager,
-                          @Qualifier("usernamePasswordAuthManager") AuthenticationManager loginAuthManager)
+                          JwtService jwtService)
     {
         this.userCredentialRepository = userCredentialRepository;
         this.authService = authService;
         this.jwtService = jwtService;
-        this.jwtAuthManager = jwtAuthManager;
-        this.loginAuthManager = loginAuthManager;
     }
 
     @GetMapping("/credential/{requestId}")
@@ -60,11 +53,11 @@ public class AuthController
                 loginRequest.getPassword(),
                 null) ;
 
-        var user = this.loginAuthManager.authenticate(authenticationToken);
+        var userDetails = (MyUserDetails) this.authService.login(authenticationToken).getPrincipal();
 
-        //this.userCredentialRepository.save()
-        //this.userCredentialRepository.find
-        return ResponseEntity.ok(((UserCredentialDetails)user.getPrincipal()).getUserCredential());
+        return ResponseEntity.ok(
+                this.jwtService.generateTokens(userDetails.getUserCredential().getId(),
+                        UserRoles.valueOf(userDetails.getRole())));
     }
 
     @PostMapping(path = "/register")
@@ -72,13 +65,11 @@ public class AuthController
     {
         var userCredential = this.authService.register(registerRequest);
 
-        var jwt = this.jwtService.generateAccessToken(userCredential);
-
         var uri = uriBuilder
                 .path("/auth/credential/{id}")
                 .buildAndExpand(userCredential.getId())
                 .toUri();
 
-        return ResponseEntity.created(uri).body(Map.of("jwt", jwt));
+        return ResponseEntity.created(uri).build();
     }
 }

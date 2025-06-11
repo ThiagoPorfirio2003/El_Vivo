@@ -57,8 +57,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
         if(authentication != null)
         {
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            System.out.println("Autenticado: " + authentication.isAuthenticated());
-            System.out.println("Context: " + SecurityContextHolder.getContext().getAuthentication());
         }
 
         filterChain.doFilter(request,response);

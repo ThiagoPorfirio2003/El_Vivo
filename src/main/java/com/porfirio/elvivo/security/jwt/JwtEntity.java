@@ -22,7 +22,7 @@ public class JwtEntity
     private String token;
 
     @Enumerated(EnumType.STRING)
-    private TokenType tokenType; //= TokenType.BEARER;
+    private TokenUse tokenUse; //= TokenType.BEARER;
 
     @Enumerated(EnumType.STRING)
     private TokenState tokenState;

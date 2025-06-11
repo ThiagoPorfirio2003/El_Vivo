@@ -1,7 +1,6 @@
 package com.porfirio.elvivo.security.jwt;
 
-import com.porfirio.elvivo.domain.user.credential.UserCredential;
-import com.porfirio.elvivo.exception.JwtAuthenticationException;
+import com.porfirio.elvivo.domain.user.UserRoles;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
@@ -12,8 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import javax.naming.AuthenticationException;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -23,7 +22,7 @@ public class JwtService
     private String secretKey;
 
     @Value("${application.security.jwt.secret-expiration}")
-    private long expiration;
+    private long accessExpiration;
 
     @Value("${application.security.jwt.refresh-token-expiration}")
     private long refreshExpiration;
@@ -35,29 +34,43 @@ public class JwtService
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private String buildToken(final UserCredential userCredential, final Long expiration)
+    private String buildToken(Long subjectId, UUID tokenUUID, long tokenExpiration, Map<String, ?> claims)
     {
-        /*
-            Tengo que meter el rol aca despues
-        */
         return Jwts.builder()
-                .id(UUID.randomUUID().toString())
-                .subject(userCredential.getId().toString())
-                //Agregar claim que posea los roles y userUpdatedAt
+                .id(tokenUUID.toString())
+                .subject(subjectId.toString())
+                .claims(claims)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + tokenExpiration))
                 .signWith(this.getSignInKey())
                 .compact();
     }
 
-    public String generateAccessToken(final UserCredential userCredential)
+    private String generateAccessToken(long subjectId, UUID tokenUUID, UserRoles userRole)
     {
-        return this.buildToken(userCredential, this.expiration);
+        var claims = Map.of("userRole", userRole,
+                            "tokenUse", TokenUse.ACCESS);
+
+        return this.buildToken(subjectId, tokenUUID,this.accessExpiration, claims);
     }
 
-    public String generateRefreshToken(final UserCredential userCredential)
+    private String generateRefreshToken(long subjectId, UUID tokenUUID, UUID accessTokenUUID)
     {
-        return this.buildToken(userCredential, this.refreshExpiration);
+        var claims = Map.of("accessTokenUUID", accessTokenUUID.toString(),
+                            "tokenUse", TokenUse.REFRESH);
+
+        return this.buildToken(subjectId, tokenUUID, this.refreshExpiration, claims);
+    }
+
+    public AccessRefreshTokens generateTokens(long subjectId, UserRoles userRole)
+    {
+        UUID accessTokenUUID = UUID.randomUUID();
+        UUID refreshTokenUUID = UUID.randomUUID();
+
+        String accessToken = this.generateAccessToken(subjectId, accessTokenUUID, userRole);
+        String refreshToken = this.generateRefreshToken(subjectId, refreshTokenUUID, accessTokenUUID);
+
+        return new AccessRefreshTokens(accessToken, refreshToken);
     }
 
     public Jws<Claims> parseToken(String jwt) throws JwtException, IllegalArgumentException
@@ -65,6 +78,7 @@ public class JwtService
         return Jwts.parser()
                 .verifyWith(this.getSignInKey())
                 .build()
+                //Este metodo esta deprecado, hay que cambiarlo
                 .parseSignedClaims(jwt);
     }
 

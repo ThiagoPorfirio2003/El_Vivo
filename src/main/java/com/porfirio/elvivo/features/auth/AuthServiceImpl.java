@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,13 +29,13 @@ public class AuthServiceImpl
                            UserCredentialRepository userCredentialRepository,
                            JwtService jwtService,
                            JwtRepository jwtRepository,
-                           @Qualifier("usernamePasswordAuthManager")
-                           AuthenticationManager loginAuthManager)
+                           @Qualifier("usernamePasswordAuthManager") AuthenticationManager loginAuthManager)
     {
         this.passwordEncoder = passwordEncoder;
         this.userCredentialRepository = userCredentialRepository;
         this.jwtService = jwtService;
         this.jwtRepository = jwtRepository;
+        this.loginAuthManager = loginAuthManager;
     }
 
     private UserCredential buildUserCredentials(CredentialRequest credentialRequest)
@@ -47,17 +49,6 @@ public class AuthServiceImpl
     /*
         Todo esto deberia ser una transaccion
     */
-    /*
-    public void register(RegisterRequest registerRequest)
-    {
-        var savedUserCredential = this.userCredentialRepository.save(this.buildUserCredentials(registerRequest));
-
-        var jwtToken = this.jwtService.generateAccessToken(savedUserCredential);
-        var jwtRefreshToekn = this.jwtService.generateRefreshToken(savedUserCredential);
-
-       // this.jwtRepository.save()
-    }
-    */
 
     public UserCredential register(CredentialRequest credentialRequest)
     {
@@ -65,7 +56,7 @@ public class AuthServiceImpl
 
         if(optionalUserCredential.isPresent())
         {
-            throw new EmailAlreadyExistsException("El email ingresado pertenece a otro usuario");
+            throw new EmailAlreadyExistsException("The submitted email is already in use.");
         }
 
         var userCredential = this.userCredentialRepository.save(this.buildUserCredentials(credentialRequest));
@@ -85,16 +76,9 @@ public class AuthServiceImpl
         */
     }
 
-    public void login(AbstractAuthenticationToken authToken)
+    public Authentication login(AbstractAuthenticationToken authToken) throws AuthenticationException
     {
-        //this.loginAuthManager.authenticate(authToken);
-
-        var userCredential = this.userCredentialRepository.findByEmail((String) authToken.getPrincipal())
-                .orElseThrow();
-
-       // var jwtToken = this.jwtService.generateAccessToken(userCredential);
-       // var refreshToken = this.jwtService.generateRefreshToken(userCredential);
-        //revokeUserToken()
+        return this.loginAuthManager.authenticate(authToken);
     }
 
 }

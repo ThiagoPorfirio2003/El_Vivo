@@ -38,15 +38,6 @@ import java.util.List;
 @EnableWebSecurity
 public class AuthConfig
 {
-    /*
-    private final UserCredentialRepository userCredentialRepository;
-
-    public AuthConfig(UserCredentialRepository userCredentialRepository)
-    {
-        this.userCredentialRepository = userCredentialRepository;
-    }
-    */
-
     @Bean
     public PasswordEncoder passwordEncoder()
     {
@@ -100,33 +91,18 @@ public class AuthConfig
         return new ProviderManager(List.of(authenticationProvider));
     }
 
-
-    /*
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService)
-    {
-        return new JwtAuthenticationFilter(jwtService);
-    }
-    */
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtAuthenticationFilter jwtAuthenticationFilter
-                                                   /*@Qualifier("jwtAuthManager") AuthenticationManager authenticationManager*/) throws Exception
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception
     {
         http
                 .authorizeHttpRequests(request->
                     request
-                            .requestMatchers("/auth/**").permitAll()
-                            //.anyRequest().authenticated()
-                            //.requestMatchers("/**").hasRole("USER").
-                            //.anyRequest().authenticated()
-                            //.anyRequest().hasRole("USER")
+                            .requestMatchers("/auth/login", "/auth/register").permitAll()
+                            .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sessionManeger->
                         sessionManeger.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                //.authenticationManager(authenticationManager);
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

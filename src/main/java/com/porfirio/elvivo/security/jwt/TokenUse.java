@@ -1,6 +1,6 @@
 package com.porfirio.elvivo.security.jwt;
 
-public enum TokenType
+public enum TokenUse
 {
     ACCESS,
     REFRESH
