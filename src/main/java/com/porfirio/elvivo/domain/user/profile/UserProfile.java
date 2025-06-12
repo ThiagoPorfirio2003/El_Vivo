@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 public class UserProfile
 {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(targetEntity = UserCredential.class, fetch = FetchType.LAZY)
@@ -41,9 +42,9 @@ public class UserProfile
     @Column(name = "role")
     private UserRoles role;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 }

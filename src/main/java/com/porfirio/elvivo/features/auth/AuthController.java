@@ -53,7 +53,10 @@ public class AuthController
                 loginRequest.getPassword(),
                 null) ;
 
-        var userCredential = ((MyUserDetails) this.authService.login(authenticationToken)).getUserCredential();
+        var userCredential = ((MyUserDetails)this.authService.login(authenticationToken).getPrincipal()).getUserCredential();
+
+
+        //return ResponseEntity.ok(userCredential);
 
         return ResponseEntity.ok(
                 this.jwtService.generateTokens(
