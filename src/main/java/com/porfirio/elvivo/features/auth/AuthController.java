@@ -53,11 +53,12 @@ public class AuthController
                 loginRequest.getPassword(),
                 null) ;
 
-        var userDetails = (MyUserDetails) this.authService.login(authenticationToken).getPrincipal();
+        var userCredential = ((MyUserDetails) this.authService.login(authenticationToken)).getUserCredential();
 
         return ResponseEntity.ok(
-                this.jwtService.generateTokens(userDetails.getUserCredential().getId(),
-                        UserRoles.valueOf(userDetails.getRole())));
+                this.jwtService.generateTokens(
+                        userCredential.getId(),
+                        UserRoles.PATIENT));
     }
 
     @PostMapping(path = "/register")

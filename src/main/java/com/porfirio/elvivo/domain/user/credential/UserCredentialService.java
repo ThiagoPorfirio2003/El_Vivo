@@ -3,11 +3,11 @@ package com.porfirio.elvivo.domain.user.credential;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserCredentialServiceImpl
+public class UserCredentialService
 {
     private UserCredentialRepository userCredentialRepository;
 
-    public UserCredentialServiceImpl(UserCredentialRepository userCredentialRepository)
+    public UserCredentialService(UserCredentialRepository userCredentialRepository)
     {
         this.userCredentialRepository = userCredentialRepository;
     }
