@@ -1,6 +1,7 @@
 package com.porfirio.elvivo.security.jwt;
 
 import com.porfirio.elvivo.domain.user.UserRoles;
+import com.porfirio.elvivo.unsorted.AuthenticatedUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
@@ -46,29 +47,36 @@ public class JwtService
                 .compact();
     }
 
-    private String generateAccessToken(long subjectId, UUID tokenUUID, UserRoles userRole)
+    private String generateAccessToken(AuthenticatedUser authUser, UUID tokenUUID, UserRoles userRole)
     {
-        var claims = Map.of("userRole", userRole,
-                            "tokenUse", TokenUse.ACCESS);
+        var claims = Map.of(
+                "userRole", userRole,
+                "tokenUse", TokenUse.ACCESS,
+                "userProfileId", authUser.profileId().toString());
 
-        return this.buildToken(subjectId, tokenUUID,this.accessExpiration, claims);
+        /*
+        * a7db2431-a5d1-4da9-96f6-50a440088a41
+        *
+        */
+
+        return this.buildToken(authUser.credentialId(), tokenUUID,this.accessExpiration, claims);
     }
 
     private String generateRefreshToken(long subjectId, UUID tokenUUID, UUID accessTokenUUID)
     {
         var claims = Map.of("accessTokenUUID", accessTokenUUID.toString(),
-                            "tokenUse", TokenUse.REFRESH);
+                "tokenUse", TokenUse.REFRESH);
 
         return this.buildToken(subjectId, tokenUUID, this.refreshExpiration, claims);
     }
 
-    public AccessRefreshTokens generateTokens(long subjectId, UserRoles userRole)
+    public AccessRefreshTokens generateTokens(AuthenticatedUser authUser, UserRoles userRole)
     {
         UUID accessTokenUUID = UUID.randomUUID();
         UUID refreshTokenUUID = UUID.randomUUID();
 
-        String accessToken = this.generateAccessToken(subjectId, accessTokenUUID, userRole);
-        String refreshToken = this.generateRefreshToken(subjectId, refreshTokenUUID, accessTokenUUID);
+        String accessToken = this.generateAccessToken(authUser, accessTokenUUID, userRole);
+        String refreshToken = this.generateRefreshToken(authUser.credentialId(), refreshTokenUUID, accessTokenUUID);
 
         return new AccessRefreshTokens(accessToken, refreshToken);
     }

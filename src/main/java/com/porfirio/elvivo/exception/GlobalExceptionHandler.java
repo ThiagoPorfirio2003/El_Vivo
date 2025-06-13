@@ -28,4 +28,14 @@ public class GlobalExceptionHandler
                         "error", "BAD_CREDENTIALS",
                         "message", exception.getMessage()));
     }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String,String>> handleDniAlreadyExistsException(DniAlreadyExistsException exception)
+    {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(
+                Map.of(
+                        "error", "DNI_ALREADY_EXISTS",
+                        "message", exception.getMessage()));
+    }
 }

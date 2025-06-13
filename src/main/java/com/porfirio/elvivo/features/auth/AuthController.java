@@ -4,12 +4,12 @@ import com.porfirio.elvivo.domain.user.MyUserDetails;
 import com.porfirio.elvivo.domain.user.UserRoles;
 import com.porfirio.elvivo.domain.user.credential.UserCredential;
 import com.porfirio.elvivo.domain.user.credential.UserCredentialRepository;
-import com.porfirio.elvivo.features.auth.dto.CredentialRequest;
+import com.porfirio.elvivo.features.auth.dto.RegisterRequest;
+import com.porfirio.elvivo.features.auth.dto.UserCredentialData;
+import com.porfirio.elvivo.security.jwt.AccessRefreshTokens;
 import com.porfirio.elvivo.security.jwt.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class AuthController
 {
     private final UserCredentialRepository userCredentialRepository;
-    private final AuthServiceImpl authService;
+    private final AuthService authService;
     private final JwtService jwtService;
 
     /*
@@ -31,7 +31,7 @@ public class AuthController
 
     @Autowired
     public AuthController(UserCredentialRepository userCredentialRepository,
-                          AuthServiceImpl authService,
+                          AuthService authService,
                           JwtService jwtService)
     {
         this.userCredentialRepository = userCredentialRepository;
@@ -46,32 +46,33 @@ public class AuthController
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody CredentialRequest loginRequest)
+    public ResponseEntity<AccessRefreshTokens> login(@RequestBody UserCredentialData loginRequest)
     {
         var authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(),
                 loginRequest.getPassword(),
                 null) ;
 
+        /*
         var userCredential = ((MyUserDetails)this.authService.login(authenticationToken).getPrincipal()).getUserCredential();
-
-
-        //return ResponseEntity.ok(userCredential);
 
         return ResponseEntity.ok(
                 this.jwtService.generateTokens(
                         userCredential.getId(),
                         UserRoles.PATIENT));
+        */
+
+        return ResponseEntity.ok(this.authService.login(authenticationToken));
     }
 
     @PostMapping(path = "/register")
-    public ResponseEntity<Map<String,String>> register(@RequestBody CredentialRequest registerRequest, UriComponentsBuilder uriBuilder)
+    public ResponseEntity<Map<String,String>> register(@RequestBody RegisterRequest registerRequest, UriComponentsBuilder uriBuilder)
     {
-        var userCredential = this.authService.register(registerRequest);
+        var registerReturn = this.authService.register(registerRequest);
 
         var uri = uriBuilder
                 .path("/auth/credential/{id}")
-                .buildAndExpand(userCredential.getId())
+                .buildAndExpand(registerReturn.credentialId())
                 .toUri();
 
         return ResponseEntity.created(uri).build();

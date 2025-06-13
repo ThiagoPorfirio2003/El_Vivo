@@ -51,7 +51,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider
         userCredential = this.userCredentialRepository.findById(userCredentialId).get();
 
         var jwtAuthenticationToken = new JwtAuthenticationToken(
-                new AuthenticatedUser(userCredentialId, -1L, userCredential.getEmail()), null);
+                new AuthenticatedUser(userCredentialId, -1L, userCredential.getEmail()),
+                null);
 
         jwtAuthenticationToken.setAuthenticated(true);
 
